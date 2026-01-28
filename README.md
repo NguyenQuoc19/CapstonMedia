@@ -28,7 +28,21 @@
 ## Project setup
 
 ```bash
-$ npm install
+$ npm ci
+```
+
+## ENV Setup
+
+```bash
+$ Watch the .env.example and replace your config
+```
+
+## Database setup and import default value
+
+```bash
+$ npx prisma migrate deploy
+$ npx prisma generate
+$ npx prisma db seed
 ```
 
 ## Compile and run the project
