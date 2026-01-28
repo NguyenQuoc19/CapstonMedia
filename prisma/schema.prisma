@@ -1,0 +1,326 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id                     BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  public_id              String         @unique(map: "uq_user_public_id") @default(uuid())
+  name                   String
+  email                  String         @unique(map: "uq_user_email")
+  status                 UserStatus     @default(active)
+  avatar                 String?
+  password               String?
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
+  deleted_at             DateTime?
+  authAccounts           AuthAccount[]
+  authTokens             AuthToken[]
+  comments               Comment[]
+  friendRequestsReceived Friend[]       @relation("FriendReceiver")
+  friendRequestsSent     Friend[]       @relation("FriendRequester")
+  likes                  Like[]
+  loginSessions          LoginSession[]
+  media                  Media[]
+  refreshTokens          RefreshToken[]
+  savedMedia             SavedMedia[]
+  roles                  UserRole[]
+
+  @@index([status], map: "idx_user_status")
+  @@index([deleted_at], map: "idx_user_deleted_at")
+  @@map("user")
+}
+
+model Role {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String           @unique(map: "uq_role_code")
+  name            String
+  description     String?
+  created_at      DateTime         @default(now())
+  authTokens      AuthToken[]
+  rolePermissions RolePermission[]
+  users           UserRole[]
+
+  @@map("role")
+}
+
+model UserRole {
+  id      BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id BigInt @db.UnsignedBigInt
+  role_id BigInt @db.UnsignedBigInt
+  role    Role   @relation(fields: [role_id], references: [id])
+  user    User   @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, role_id], map: "uq_user_role_user_id_role_id")
+  @@index([user_id], map: "idx_user_role_user_id")
+  @@index([role_id], map: "idx_user_role_role_id")
+  @@map("user_role")
+}
+
+model Permission {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  key             String           @unique
+  name            String?
+  created_at      DateTime         @default(now())
+  rolePermissions RolePermission[]
+
+  @@map("permission")
+}
+
+model RolePermission {
+  role_id       BigInt     @db.UnsignedBigInt
+  permission_id BigInt     @db.UnsignedBigInt
+  permission    Permission @relation(fields: [permission_id], references: [id])
+  role          Role       @relation(fields: [role_id], references: [id])
+
+  @@id([role_id, permission_id])
+  @@index([permission_id], map: "role_permission_permission_id_fkey")
+  @@map("role_permission")
+}
+
+model SocialProvider {
+  id         BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  code       String        @unique(map: "uq_social_provider_code")
+  name       String
+  enabled    Boolean       @default(true)
+  created_at DateTime      @default(now())
+  accounts   AuthAccount[]
+
+  @@index([enabled], map: "idx_social_provider_enabled")
+  @@map("social_provider")
+}
+
+model AuthAccount {
+  id               BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  email            String?
+  user_id          BigInt         @db.UnsignedBigInt
+  provider_id      BigInt         @db.UnsignedBigInt
+  provider_user_id String
+  created_at       DateTime       @default(now())
+  provider         SocialProvider @relation(fields: [provider_id], references: [id])
+  user             User           @relation(fields: [user_id], references: [id])
+
+  @@unique([provider_id, provider_user_id], map: "uq_auth_account_provider_id_provider_user_id")
+  @@unique([user_id, provider_id], map: "uq_auth_account_user_id_provider_id")
+  @@index([user_id], map: "idx_auth_account_user_id")
+  @@index([provider_id], map: "idx_auth_account_provider_id")
+  @@map("auth_account")
+}
+
+model AuthToken {
+  id             BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  type           AuthTokenType
+  user_id        BigInt        @db.UnsignedBigInt
+  token_hash     String
+  /// *
+  ///    * =========================
+  ///    * METADATA (NO JSON)
+  ///    * =========================
+  ip_address     String?       @db.VarChar(45)
+  user_agent     String?       @db.VarChar(255)
+  new_email      String?       @db.VarChar(255)
+  invite_role_id BigInt?       @db.UnsignedBigInt
+  /// *
+  ///    * =========================
+  ///    * LIFECYCLE
+  ///    * =========================
+  used_at        DateTime?
+  expires_at     DateTime
+  revoked_at     DateTime?
+  created_at     DateTime      @default(now())
+  inviteRole     Role?         @relation(fields: [invite_role_id], references: [id])
+  user           User          @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], map: "idx_auth_token_user_id")
+  @@index([type], map: "idx_auth_token_type")
+  @@index([expires_at], map: "idx_auth_token_expires_at")
+  @@index([used_at], map: "idx_auth_token_used_at")
+  @@index([new_email], map: "idx_auth_token_new_email")
+  @@index([invite_role_id], map: "auth_token_invite_role_id_fkey")
+  @@map("auth_token")
+}
+
+model AuthConfig {
+  id                      Int      @id @default(1)
+  /// *
+  ///    * =========================
+  ///    * ACCESS TOKEN TTL (minutes)
+  ///    * =========================
+  access_ttl_admin_min    Int      @default(5)
+  access_ttl_mobile_min   Int      @default(20)
+  access_ttl_default_min  Int      @default(15)
+  /// *
+  ///    * =========================
+  ///    * REFRESH TOKEN TTL (days)
+  ///    * =========================
+  refresh_ttl_admin_day   Int      @default(14)
+  refresh_ttl_mobile_day  Int      @default(45)
+  refresh_ttl_default_day Int      @default(30)
+  /// *
+  ///    * =========================
+  ///    * SECURITY BEHAVIOR
+  ///    * =========================
+  max_active_sessions     Int      @default(5)
+  is_rotate_refresh_token Boolean  @default(true)
+  /// *
+  ///    * =========================
+  ///    * AUDIT
+  ///    * =========================
+  updated_at              DateTime @updatedAt
+  updated_by              BigInt?
+
+  @@index([updated_at], map: "idx_auth_config_updated_at")
+  @@index([updated_by], map: "idx_auth_config_updated_by")
+  @@map("auth_config")
+}
+
+model RefreshToken {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  token      String    @unique(map: "uq_refresh_token_token")
+  user_id    BigInt    @db.UnsignedBigInt
+  expires_at DateTime
+  revoked_at DateTime?
+  created_at DateTime  @default(now())
+  user       User      @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], map: "idx_refresh_token_user_id")
+  @@index([expires_at], map: "idx_refresh_token_expires_at")
+  @@map("refresh_token")
+}
+
+model LoginSession {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  device         String?
+  user_id        BigInt    @db.UnsignedBigInt
+  ip_address     String?
+  user_agent     String?
+  last_active_at DateTime?
+  created_at     DateTime  @default(now())
+  user           User      @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], map: "idx_login_session_user_id")
+  @@index([ip_address], map: "idx_login_session_ip_address")
+  @@map("login_session")
+}
+
+model Media {
+  id         BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  public_id  String       @unique(map: "uq_media_public_id") @default(uuid())
+  url        String
+  type       MediaType
+  user_id    BigInt       @db.UnsignedBigInt
+  caption    String?
+  privacy    MediaPrivacy @default(public)
+  thumbnail  String?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  deleted_at DateTime?
+  comments   Comment[]
+  likes      Like[]
+  user       User         @relation(fields: [user_id], references: [id])
+  savedBy    SavedMedia[]
+
+  @@index([user_id], map: "idx_media_user_id")
+  @@index([privacy], map: "idx_media_privacy")
+  @@index([deleted_at], map: "idx_media_deleted_at")
+  @@map("media")
+}
+
+model Comment {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  media_id   BigInt    @db.UnsignedBigInt
+  parent_id  BigInt?   @db.UnsignedBigInt
+  content    String
+  created_at DateTime  @default(now())
+  deleted_at DateTime?
+  media      Media     @relation(fields: [media_id], references: [id])
+  parent     Comment?  @relation("CommentReply", fields: [parent_id], references: [id])
+  replies    Comment[] @relation("CommentReply")
+  user       User      @relation(fields: [user_id], references: [id])
+
+  @@index([media_id], map: "idx_comment_media_id")
+  @@index([user_id], map: "idx_comment_user_id")
+  @@index([parent_id], map: "idx_comment_parent_id")
+  @@map("comment")
+}
+
+model Like {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  media_id   BigInt   @db.UnsignedBigInt
+  created_at DateTime @default(now())
+  media      Media    @relation(fields: [media_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, media_id], map: "uq_like_user_id_media_id")
+  @@index([media_id], map: "idx_like_media_id")
+  @@index([user_id], map: "idx_like_user_id")
+  @@map("like")
+}
+
+model SavedMedia {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  media_id   BigInt   @db.UnsignedBigInt
+  created_at DateTime @default(now())
+  media      Media    @relation(fields: [media_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, media_id], map: "uq_saved_media_user_id_media_id")
+  @@index([media_id], map: "idx_saved_media_media_id")
+  @@index([user_id], map: "idx_saved_media_user_id")
+  @@map("saved_media")
+}
+
+model Friend {
+  id           BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  status       FriendStatus
+  receiver_id  BigInt       @db.UnsignedBigInt
+  requester_id BigInt       @db.UnsignedBigInt
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  receiver     User         @relation("FriendReceiver", fields: [receiver_id], references: [id])
+  requester    User         @relation("FriendRequester", fields: [requester_id], references: [id])
+
+  @@unique([requester_id, receiver_id], map: "uq_friend_requester_id_receiver_id")
+  @@index([requester_id], map: "idx_friend_requester_id")
+  @@index([receiver_id], map: "idx_friend_receiver_id")
+  @@index([status], map: "idx_friend_status")
+  @@map("friend")
+}
+
+enum UserStatus {
+  active
+  banned
+}
+
+enum MediaType {
+  image
+  video
+  audio
+}
+
+enum MediaPrivacy {
+  public
+  friend
+}
+
+enum FriendStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum AuthTokenType {
+  RESET_PASSWORD
+  VERIFY_EMAIL
+  MAGIC_LOGIN
+  INVITE_USER
+  CHANGE_EMAIL
+}
