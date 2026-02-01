@@ -14,6 +14,8 @@ import { AppController } from './app.controller';
 import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { MediaModule } from './modules/media/media.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
     PrismaModule,
     HealthModule,
     UploadModule,
+    MediaModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [

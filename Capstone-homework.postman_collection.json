@@ -1,0 +1,1151 @@
+{
+  "info": {
+    "_postman_id": "de5ce7e5-6d0b-45a2-8edb-996262ef48cb",
+    "name": "Capstone-homework",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15408727"
+  },
+  "item": [
+    {
+      "name": "API System",
+      "item": [
+        {
+          "name": "Tải hình ảnh",
+          "item": [
+            {
+              "name": "From data",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "uuid": "45474907-5719-410d-bf1a-58a523840c66",
+                      "src": "/Users/nguyenquoc/Downloads/1.jpg"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{url}}/upload/image",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "upload",
+                    "image"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Link Url",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"url\": \"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGa70BgePn1Rsf41oiG6ac0_TAzpKXj4d9qg&s\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{url}}/upload/image-link",
+                  "host": [
+                    "{{url}}"
+                  ],
+                  "path": [
+                    "upload",
+                    "image-link"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Kiểm tra hình ảnh tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{url}}/upload/exists?key=images/17000000-cat.png",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "upload",
+                "exists"
+              ],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "images/17000000-cat.png"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Đăng ký",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const jsonData = JSON.parse(responseBody);",
+              "pm.collectionVariables.set(\"access_token\", jsonData.data.access_token);",
+              "pm.collectionVariables.set(\"refresh-token\", jsonData.data.refresh_token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe.4@example.com\",\n    \"password\": \"Password@123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/register",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Đăng Nhập",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const jsonData = JSON.parse(responseBody);",
+              "pm.collectionVariables.set(\"access_token\", jsonData.data.access_token);",
+              "pm.collectionVariables.set(\"refresh-token\", jsonData.data.refresh_token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"john.doe.1@example.com\",\n    \"password\": \"Password@123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/login",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Danh sách ảnh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media?page=1&limit=10&sortBy=id&sortOrder=asc",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "sortBy",
+              "value": "id"
+            },
+            {
+              "key": "sortOrder",
+              "value": "asc"
+            },
+            {
+              "key": "caption",
+              "value": "45",
+              "description": "Tìm kiếm theo tên ảnh",
+              "disabled": true
+            },
+            {
+              "key": "user_id",
+              "value": "3",
+              "description": "Tìm kiếm theo người tạo",
+              "disabled": true
+            },
+            {
+              "key": "type",
+              "value": "image",
+              "description": "Tìm kiếm theo loại media (image)",
+              "disabled": true
+            },
+            {
+              "key": "privacy",
+              "value": "public",
+              "description": "Tìm kiếm theo chế độ hiển thị (public, friend)",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Chi tiết bài viết",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/1",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Chỉnh sửa bài viết",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"caption\": \"This is edit 123\",\n    \"privacy\": \"public\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/1",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Xóa bài viết",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/delete/1",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "delete",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Các bài viết đã xóa",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/delete",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Khôi phục bài viết đã xóa",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/delete/1/restore",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "delete",
+            "1",
+            "restore"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Xóa bài viết vĩnh viễn",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/delete/1/force",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "delete",
+            "1",
+            "force"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Danh sách bình luận theo bài viết",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/comment/media/1",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "comment",
+            "media",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Thêm bình luận",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"media_id\": 5, // Id của bài viết được comment\n    \"content\": \"This is a comment\",\n    \"parent_id\": 8 // Truyền vào id của comment cha\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/comment",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "comment"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Xóa bình luận",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/comment/8",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "comment",
+            "8"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Kiểm tra hình đã lưu",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/saved/5",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "saved",
+            "5"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Danh sách ảnh đã lưu",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/saved?page=1&limit=20&sortBy=id&sortOrder=asc",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "saved"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "sortBy",
+              "value": "id"
+            },
+            {
+              "key": "sortOrder",
+              "value": "asc"
+            },
+            {
+              "key": "type",
+              "value": "image",
+              "disabled": true
+            },
+            {
+              "key": "caption",
+              "value": "123",
+              "disabled": true
+            },
+            {
+              "key": "privacy",
+              "value": "public",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Lưu hình ảnh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/saved/6",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "saved",
+            "6"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Bỏ lưu hình ảnh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/saved/2",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "saved",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Thêm ảnh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "privacy",
+              "value": "public",
+              "description": "public, friend",
+              "type": "text",
+              "uuid": "c42e0d83-ae39-4935-badd-f92a87c75b20"
+            },
+            {
+              "key": "type",
+              "value": "image",
+              "description": "image",
+              "type": "text",
+              "uuid": "f07ecef4-e385-40b0-a790-406c920e5b43"
+            },
+            {
+              "key": "caption",
+              "value": "Caption",
+              "description": "Tên bài viết",
+              "type": "text",
+              "uuid": "eceda61d-2ca6-4e74-b0c1-8f16124ce4a1"
+            },
+            {
+              "key": "file",
+              "description": "Chọn ảnh",
+              "type": "file",
+              "uuid": "59e7dcad-f280-4eae-9818-e796df9939ec",
+              "value": null
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me/upload",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me",
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Danh sách ảnh đã tạo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/media/me?page=1&limit=20&sortBy=id&sortOrder=asc",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "media",
+            "me"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "sortBy",
+              "value": "id"
+            },
+            {
+              "key": "sortOrder",
+              "value": "asc"
+            },
+            {
+              "key": "type",
+              "value": "image",
+              "disabled": true
+            },
+            {
+              "key": "caption",
+              "value": "test",
+              "disabled": true
+            },
+            {
+              "key": "privacy",
+              "value": "public",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Thông tin người dùng",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/me",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Chỉnh sửa thông tin tài khoản",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"This is John\",\n    \"email\": \"john.doe.1@example.com\",\n    \"status\": \"active\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/me",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Đổi Avatar",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"avatar\": \"https://i.pravatar.cc/100\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/me/avatar",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "me",
+            "avatar"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Xóa tài khoản / Khôi phục lại bằng cách đăng ký",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/{{prefix}}/auth/me",
+          "host": [
+            "{{url}}"
+          ],
+          "path": [
+            "{{prefix}}",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "url",
+      "value": ""
+    },
+    {
+      "key": "access-token",
+      "value": ""
+    },
+    {
+      "key": "refresh-token",
+      "value": ""
+    },
+    {
+      "key": "prefix",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ]
+}

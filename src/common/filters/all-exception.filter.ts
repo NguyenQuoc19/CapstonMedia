@@ -1,5 +1,6 @@
 import { Prisma } from '@/generated/prisma/client';
 import { Response } from 'express';
+import { AxiosError } from 'axios';
 import { ErrorResponse } from '@/shared/response/interfaces/error-response.interface';
 import { generateSysErrorCode, getErrorMessage } from '@/shared/error-codes';
 import { getPrismaErrorMessage, getPrismaHttpStatus } from '@/shared/error-codes/helpers/prisma-error.helper';
@@ -11,9 +12,7 @@ import {
     HttpException,
     ArgumentsHost,
     ExceptionFilter,
-    GatewayTimeoutException,
 } from '@nestjs/common';
-import { AxiosError } from 'axios';
 
 const handlePrismaException = (exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) => {
     const res = host.switchToHttp().getResponse<Response>();

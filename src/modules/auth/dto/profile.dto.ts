@@ -23,8 +23,8 @@ export class ProfileDto {
   @IsOptional()
   status?: UserStatus;
 
-  @IsUrl()
-  @Matches(/\.(jpg|jpeg|png|gif|webp)$/i, { message: 'Avatar must be an image URL' })
+  // @IsUrl()
+  // @Matches(/\.(jpg|jpeg|png|gif|webp)$/i, { message: 'Avatar must be an image URL' })
   @IsOptional()
   avatar: string;
 }

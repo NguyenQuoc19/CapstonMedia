@@ -1,11 +1,13 @@
+import axios from 'axios';
+import { extname } from 'path';
+
 import { Injectable } from '@nestjs/common';
 import { STORAGE_IMAGES } from '@/common/constants/storage.constant';
-import { StorageProvider, StorageResult } from '../storage.interface';
 import { v2 as cloudinary } from 'cloudinary';
-import { CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD_NAME } from '@/common/constants/cloudinary.constant';
-import axios from 'axios';
-import { generateFolderPath } from '../helpers/path.helper';
 import { IMAGE_MIME_TO_EXT } from '../constants/image.mime';
+import { generateFolderPath } from '../helpers/path.helper';
+import { StorageProvider, StorageResult } from '../storage.interface';
+import { CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD_NAME } from '@/common/constants/cloudinary.constant';
 
 @Injectable()
 export class CloudinaryStorageProvider implements StorageProvider {
@@ -33,7 +35,7 @@ export class CloudinaryStorageProvider implements StorageProvider {
                 .upload_stream(
                     {
                         folder: folder,
-                        public_id: filename,
+                        public_id: filename.replace(/\.[^/.]+$/, ''),
                         overwrite: false,
                         resource_type: 'image',
                     },
@@ -43,7 +45,7 @@ export class CloudinaryStorageProvider implements StorageProvider {
                         }
 
                         resolve({
-                            key: result.public_id,
+                            key: `${result.public_id}${extname(result.secure_url)}`,
                             url: result.secure_url,
                             size: result.bytes,
                         });

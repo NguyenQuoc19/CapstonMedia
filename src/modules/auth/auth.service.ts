@@ -7,13 +7,29 @@ import { JwtService } from '@nestjs/jwt';
 import { UserStatus } from '@/generated/prisma/enums';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '@/shared/prisma/prisma.service';
+import { UploadService } from '@/shared/upload/upload.service';
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+
+const USER_SELECT = {
+    id: true,
+    roles: {
+        select: {
+            role: {
+                select: {
+                    code: true,
+                    rolePermissions: { select: { permission: { select: { key: true }, }, }, },
+                },
+            },
+        },
+    },
+}
 
 @Injectable()
 export class AuthService {
     constructor(
         private jwt: JwtService,
         private prisma: PrismaService,
+        private readonly uploadService: UploadService
     ) { }
 
     async register(body: RegisterDto) {
@@ -21,10 +37,32 @@ export class AuthService {
 
         const exists = await this.prisma.user.findUnique({
             where: { email: email },
-            select: { id: true }
+            select: { id: true, deleted_at: true }
         });
 
-        if (exists) throw new ConflictException('Account with that email already exists');
+        console.log(exists);
+        if (exists) {
+            if (exists.deleted_at === null) throw new ConflictException('Account with that email already exists');
+
+            const hashed = await bcrypt.hash(password, 10);
+
+            const user = await this.prisma.user.update({
+                where: { email },
+                data: {
+                    password: hashed,
+                    deleted_at: null,
+                },
+                select: USER_SELECT
+            });
+
+            return this.generateTokens({
+                sub: String(user.id),
+                roles: user.roles.map(r => r.role.code),
+                permissions: user.roles.flatMap(r =>
+                    r.role.rolePermissions.map(rp => rp.permission.key),
+                )
+            });
+        }
 
         const hashed = await bcrypt.hash(password, 10);
         const user = await this.prisma.user.create({
@@ -38,27 +76,7 @@ export class AuthService {
                     },
                 },
             },
-            select: {
-                id: true,
-                roles: {
-                    select: {
-                        role: {
-                            select: {
-                                code: true,
-                                rolePermissions: {
-                                    select: {
-                                        permission: {
-                                            select: {
-                                                key: true,
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            }
+            select: USER_SELECT
         });
 
         return this.generateTokens({
@@ -74,32 +92,11 @@ export class AuthService {
         const { email, password } = body;
 
         const user = await this.prisma.user.findUnique({
-            where: { email: email, status: UserStatus.active },
-            select: {
-                id: true,
-                password: true,
-                roles: {
-                    select: {
-                        role: {
-                            select: {
-                                code: true,
-                                rolePermissions: {
-                                    select: {
-                                        permission: {
-                                            select: {
-                                                key: true,
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            }
+            where: { email: email, status: UserStatus.active, deleted_at: null },
+            select: { password: true, ...USER_SELECT }
         });
 
-        if (!user) throw new UnauthorizedException();
+        if (!user) throw new UnauthorizedException('Account not found or already deactivated');
 
         const valid = await bcrypt.compare(password, user.password ?? "");
         if (!valid) throw new UnauthorizedException();
@@ -113,6 +110,13 @@ export class AuthService {
         });
     }
 
+    generateTokens(payload: any) {
+        return {
+            access_token: this.jwt.sign(payload, { expiresIn: '1h' }),
+            refresh_token: this.jwt.sign(payload, { expiresIn: '1d' }),
+        };
+    }
+
     async getProfile(body: MeDto) {
         const { sub } = body;
 
@@ -122,31 +126,13 @@ export class AuthService {
                 // status: UserStatus.active,
             },
             select: {
-                id: true,
                 name: true,
                 email: true,
                 status: true,
                 avatar: true,
                 created_at: true,
                 updated_at: true,
-                roles: {
-                    select: {
-                        role: {
-                            select: {
-                                code: true,
-                                rolePermissions: {
-                                    select: {
-                                        permission: {
-                                            select: {
-                                                key: true,
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
+                ...USER_SELECT
             },
         });
 
@@ -168,6 +154,7 @@ export class AuthService {
     async updateProfile(payload: MeDto) {
         const { sub, roles, body } = payload;
         if (!body) throw new BadRequestException("Invalid input data");
+        if (body.avatar) throw new BadRequestException("Avatar not support here");
 
         const user = await this.prisma.user.findUnique({
             where: {
@@ -190,17 +177,53 @@ export class AuthService {
                 avatar: true,
                 created_at: true,
                 updated_at: true,
-                // roles: { include: { role: true } }
             }
         });
 
         return updated;
     }
 
-    generateTokens(payload: any) {
-        return {
-            access_token: this.jwt.sign(payload, { expiresIn: '1h' }),
-            refresh_token: this.jwt.sign(payload, { expiresIn: '1d' }),
-        };
+    async updateAvatar(payload: MeDto) {
+        const { sub, roles, body } = payload;
+        if (body?.name || body?.email || body?.status) throw new BadRequestException("Name, Email, Status not support here");
+        if (!body?.avatar) throw new BadRequestException("Invalid input data");
+
+        const uploadAvatar = await this.uploadService.uploadFromUrl(body.avatar);
+
+        const { url } = uploadAvatar;
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: sub, status: UserStatus.active },
+            select: { id: true }
+        });
+
+        if (!user) throw new UnauthorizedException();
+
+        const updated = await this.prisma.user.update({
+            data: { avatar: url },
+            where: { id: sub },
+            select: { avatar: true }
+        });
+
+        return updated;
+    }
+
+    async softDelete(user_id: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: user_id, deleted_at: null },
+            select: { id: true }
+        });
+
+        if (!user) throw new UnauthorizedException('Account not found or already deactivated');
+
+        const softDelete = await this.prisma.user.update({
+            where: { id: user_id, deleted_at: null },
+            data: { deleted_at: new Date() },
+            select: { id: true, name: true, email: true }
+        });
+
+        if (!softDelete) throw new BadRequestException('Failed to deactivate the account. Please try again later.');
+
+        return softDelete;
     }
 }

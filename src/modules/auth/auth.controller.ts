@@ -8,7 +8,7 @@ import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { successResponse } from "@/shared/response";
 import { PermissionGuard } from "./guards/permission.guard";
-import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put, UseGuards } from "@nestjs/common";
 
 import type { JwtPayload } from "@/common/types/jwt-payload.type";
 
@@ -53,5 +53,28 @@ export class AuthController {
     ) {
         const result = await this.authService.updateProfile({ sub: +user.sub, roles: user.roles, body })
         return successResponse(result, 'Retrieved successfully');
+    }
+
+    @Put('me/avatar')
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(PERMISSION.PROFILE_CREATE)
+    async updateAvatar(
+        @CurrentUser()
+        user: JwtPayload,
+        @Body()
+        body: ProfileDto
+    ) {
+        const result = await this.authService.updateAvatar({ sub: +user.sub, roles: user.roles, body })
+        return successResponse(result, 'Retrieved successfully');
+    }
+
+    @Delete('me')
+    @UseGuards(JwtAuthGuard, PermissionGuard)
+    @Permissions(PERMISSION.PROFILE_CREATE)
+    async softDelete(
+        @CurrentUser() user: JwtPayload
+    ) {
+        const result = await this.authService.softDelete(+user.sub)
+        return successResponse(result, 'Account delete successfully');
     }
 }

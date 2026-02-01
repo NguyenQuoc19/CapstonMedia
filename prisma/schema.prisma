@@ -9,27 +9,28 @@ datasource db {
 }
 
 model User {
-  id                     BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
-  public_id              String         @unique(map: "uq_user_public_id") @default(uuid())
-  name                   String
-  email                  String         @unique(map: "uq_user_email")
-  status                 UserStatus     @default(active)
-  avatar                 String?
-  password               String?
-  created_at             DateTime       @default(now())
-  updated_at             DateTime       @updatedAt
-  deleted_at             DateTime?
-  authAccounts           AuthAccount[]
-  authTokens             AuthToken[]
-  comments               Comment[]
-  friendRequestsReceived Friend[]       @relation("FriendReceiver")
-  friendRequestsSent     Friend[]       @relation("FriendRequester")
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  public_id  String     @unique(map: "uq_user_public_id") @default(uuid())
+  name       String
+  email      String     @unique(map: "uq_user_email")
+  status     UserStatus @default(active)
+  avatar     String?
+  password   String?
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  deleted_at DateTime?
+
   likes                  Like[]
-  loginSessions          LoginSession[]
   media                  Media[]
-  refreshTokens          RefreshToken[]
-  savedMedia             SavedMedia[]
   roles                  UserRole[]
+  comments               Comment[]
+  authTokens             AuthToken[]
+  savedMedia             SavedMedia[]
+  authAccounts           AuthAccount[]
+  loginSessions          LoginSession[]
+  refreshTokens          RefreshToken[]
+  friendRequestsSent     Friend[]       @relation("FriendRequester")
+  friendRequestsReceived Friend[]       @relation("FriendReceiver")
 
   @@index([status], map: "idx_user_status")
   @@index([deleted_at], map: "idx_user_deleted_at")
@@ -37,14 +38,15 @@ model User {
 }
 
 model Role {
-  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
-  code            String           @unique(map: "uq_role_code")
-  name            String
-  description     String?
-  created_at      DateTime         @default(now())
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String   @unique(map: "uq_role_code")
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+
+  users           UserRole[]
   authTokens      AuthToken[]
   rolePermissions RolePermission[]
-  users           UserRole[]
 
   @@map("role")
 }
@@ -53,8 +55,9 @@ model UserRole {
   id      BigInt @id @default(autoincrement()) @db.UnsignedBigInt
   user_id BigInt @db.UnsignedBigInt
   role_id BigInt @db.UnsignedBigInt
-  role    Role   @relation(fields: [role_id], references: [id])
-  user    User   @relation(fields: [user_id], references: [id])
+
+  role Role @relation(fields: [role_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
 
   @@unique([user_id, role_id], map: "uq_user_role_user_id_role_id")
   @@index([user_id], map: "idx_user_role_user_id")
@@ -73,10 +76,11 @@ model Permission {
 }
 
 model RolePermission {
-  role_id       BigInt     @db.UnsignedBigInt
-  permission_id BigInt     @db.UnsignedBigInt
-  permission    Permission @relation(fields: [permission_id], references: [id])
-  role          Role       @relation(fields: [role_id], references: [id])
+  role_id       BigInt @db.UnsignedBigInt
+  permission_id BigInt @db.UnsignedBigInt
+
+  role       Role       @relation(fields: [role_id], references: [id])
+  permission Permission @relation(fields: [permission_id], references: [id])
 
   @@id([role_id, permission_id])
   @@index([permission_id], map: "role_permission_permission_id_fkey")
@@ -84,26 +88,28 @@ model RolePermission {
 }
 
 model SocialProvider {
-  id         BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  code       String        @unique(map: "uq_social_provider_code")
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  code       String   @unique(map: "uq_social_provider_code")
   name       String
-  enabled    Boolean       @default(true)
-  created_at DateTime      @default(now())
-  accounts   AuthAccount[]
+  enabled    Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  accounts AuthAccount[]
 
   @@index([enabled], map: "idx_social_provider_enabled")
   @@map("social_provider")
 }
 
 model AuthAccount {
-  id               BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  id               BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
   email            String?
-  user_id          BigInt         @db.UnsignedBigInt
-  provider_id      BigInt         @db.UnsignedBigInt
+  user_id          BigInt   @db.UnsignedBigInt
+  provider_id      BigInt   @db.UnsignedBigInt
   provider_user_id String
-  created_at       DateTime       @default(now())
-  provider         SocialProvider @relation(fields: [provider_id], references: [id])
-  user             User           @relation(fields: [user_id], references: [id])
+  created_at       DateTime @default(now())
+
+  user     User           @relation(fields: [user_id], references: [id])
+  provider SocialProvider @relation(fields: [provider_id], references: [id])
 
   @@unique([provider_id, provider_user_id], map: "uq_auth_account_provider_id_provider_user_id")
   @@unique([user_id, provider_id], map: "uq_auth_account_user_id_provider_id")
@@ -133,8 +139,9 @@ model AuthToken {
   expires_at     DateTime
   revoked_at     DateTime?
   created_at     DateTime      @default(now())
-  inviteRole     Role?         @relation(fields: [invite_role_id], references: [id])
-  user           User          @relation(fields: [user_id], references: [id])
+
+  user       User  @relation(fields: [user_id], references: [id])
+  inviteRole Role? @relation(fields: [invite_role_id], references: [id])
 
   @@index([user_id], map: "idx_auth_token_user_id")
   @@index([type], map: "idx_auth_token_type")
@@ -186,7 +193,8 @@ model RefreshToken {
   expires_at DateTime
   revoked_at DateTime?
   created_at DateTime  @default(now())
-  user       User      @relation(fields: [user_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id])
 
   @@index([user_id], map: "idx_refresh_token_user_id")
   @@index([expires_at], map: "idx_refresh_token_expires_at")
@@ -201,7 +209,8 @@ model LoginSession {
   user_agent     String?
   last_active_at DateTime?
   created_at     DateTime  @default(now())
-  user           User      @relation(fields: [user_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id])
 
   @@index([user_id], map: "idx_login_session_user_id")
   @@index([ip_address], map: "idx_login_session_ip_address")
@@ -220,10 +229,11 @@ model Media {
   created_at DateTime     @default(now())
   updated_at DateTime     @updatedAt
   deleted_at DateTime?
-  comments   Comment[]
-  likes      Like[]
-  user       User         @relation(fields: [user_id], references: [id])
-  savedBy    SavedMedia[]
+
+  user     User         @relation(fields: [user_id], references: [id])
+  likes    Like[]
+  comments Comment[]
+  savedBy  SavedMedia[]
 
   @@index([user_id], map: "idx_media_user_id")
   @@index([privacy], map: "idx_media_privacy")
@@ -239,10 +249,11 @@ model Comment {
   content    String
   created_at DateTime  @default(now())
   deleted_at DateTime?
-  media      Media     @relation(fields: [media_id], references: [id])
-  parent     Comment?  @relation("CommentReply", fields: [parent_id], references: [id])
-  replies    Comment[] @relation("CommentReply")
-  user       User      @relation(fields: [user_id], references: [id])
+
+  user    User      @relation(fields: [user_id], references: [id])
+  media   Media     @relation(fields: [media_id], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReply", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReply")
 
   @@index([media_id], map: "idx_comment_media_id")
   @@index([user_id], map: "idx_comment_user_id")
@@ -255,8 +266,9 @@ model Like {
   user_id    BigInt   @db.UnsignedBigInt
   media_id   BigInt   @db.UnsignedBigInt
   created_at DateTime @default(now())
-  media      Media    @relation(fields: [media_id], references: [id])
-  user       User     @relation(fields: [user_id], references: [id])
+
+  user  User  @relation(fields: [user_id], references: [id])
+  media Media @relation(fields: [media_id], references: [id])
 
   @@unique([user_id, media_id], map: "uq_like_user_id_media_id")
   @@index([media_id], map: "idx_like_media_id")
@@ -269,8 +281,9 @@ model SavedMedia {
   user_id    BigInt   @db.UnsignedBigInt
   media_id   BigInt   @db.UnsignedBigInt
   created_at DateTime @default(now())
-  media      Media    @relation(fields: [media_id], references: [id])
-  user       User     @relation(fields: [user_id], references: [id])
+
+  user  User  @relation(fields: [user_id], references: [id])
+  media Media @relation(fields: [media_id], references: [id])
 
   @@unique([user_id, media_id], map: "uq_saved_media_user_id_media_id")
   @@index([media_id], map: "idx_saved_media_media_id")
@@ -285,8 +298,9 @@ model Friend {
   requester_id BigInt       @db.UnsignedBigInt
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt
-  receiver     User         @relation("FriendReceiver", fields: [receiver_id], references: [id])
-  requester    User         @relation("FriendRequester", fields: [requester_id], references: [id])
+
+  receiver  User @relation("FriendReceiver", fields: [receiver_id], references: [id])
+  requester User @relation("FriendRequester", fields: [requester_id], references: [id])
 
   @@unique([requester_id, receiver_id], map: "uq_friend_requester_id_receiver_id")
   @@index([requester_id], map: "idx_friend_requester_id")
